@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% block title %}Главная страница{% endblock %}
+{% load static %}
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center" style="min-height: 100vh;">
+    <div class="row clearfix" style="width: 100%;">
+        <div class="col-lg-12">
+            <div class="card chat-app" style="border-radius: 30px;">
+                <div id="plist" class="people-list" style="border-top-left-radius: 30px;">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button class="input-group-text" onclick="searchFriends()"><i class="fa fa-search"></i></button>
+                        </div>
+                        <input type="text" class="form-control" placeholder="Search...">
+                        <a class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#profileModal"><i class="fa fa-cogs"></i></a>
+                        </div>
+                        <ul class="list-unstyled chat-list mt-2 mb-0">
+                            {% for friend in friends %}
+                                {% if friend.friend.avatar and friend.friend.avatar.url %}
+                                <li class="clearfix" onclick="openChat('{{ friend.friend.id }}', '{{ friend.friend.user.username }}', '{{ friend.friend.avatar.url }}')">
+                                    <img src="{{ friend.friend.avatar.url }}" alt="avatar">
+                                    <div class="about">
+                                        <div class="name">{{ friend.friend.user.username }}</div>
+                                        <div class="status"> <i class=""></i> {{friend.profile.phone}} </div>
+                                    </div>
+                                    <a href="javascript:void(0);" onclick="showProfileModal('{{ friend.friend.id }}', '{{ friend.friend.user.username }}', '{{ friend.friend.avatar.url }}', '{{ friend.friend.phone }}')">
+                                        
+                                    </a>
+                                </li>
+                                {% else %}
+                                <li class="clearfix" onclick="openChat('{{ friend.friend.id }}', '{{ friend.friend.user.username }}', 'https://abrakadabra.fun/uploads/posts/2021-12/1640528661_1-abrakadabra-fun-p-serii-chelovek-na-avu-1.png')">
+                                    <img src="https://abrakadabra.fun/uploads/posts/2021-12/1640528661_1-abrakadabra-fun-p-serii-chelovek-na-avu-1.png" alt="avatar">
+                                    <div class="about">
+                                        <div class="name">{{ friend.friend.user.username }}</div>
+                                        <div class="status"> <i class=""></i> {{friend.profile.phone}}</div>
+                                    </div>
+                                    <a href="javascript:void(0);" onclick="showProfileModal('{{ friend.friend.id }}', '{{ friend.friend.user.username }}', 'https://abrakadabra.fun/uploads/posts/2021-12/1640528661_1-abrakadabra-fun-p-serii-chelovek-na-avu-1.png', '{{ friend.friend.phone }}')">
+                            
+                                    </a>
+                                </li>
+                                {% endif %}
+                            {% empty %}
+                            <li class="clearfix">No users found.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                <div id="chat" class="chat">
+                    <div class="chat-header clearfix" style="border-top-right-radius: 30px;">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <a href="javascript:void(0);" id="chat-avatar">
+                                    <img src="" alt="avatar">
+                                </a>
+                                <div id="chat-about" class="chat-about">
+                                    <h6 id="chat-name" class="m-b-0">Select a friend to chat</h6>
+                                    <small></small>
+                                </div>
+                            </div>
+                            <div class="col-lg-6 hidden-sm text-right">
+                            
+                            </div>
+                        </div>
+                    </div>
+                    <div id="chat-history" class="chat-history" style="height: 500px; overflow-y: scroll;">
+
+                    </div>
+                    <div class="chat-message clearfix">
+                        <div class="input-group mb-0">
+                            <div class="input-group-prepend">
+                                <button class="input-group-text" onclick="sendMessage()"><i class="fa fa-send"></i></button>
+                            </div>
+                            <input type="text" id="message-input" class="form-control" placeholder="Enter text here...">
+                            <input type="file" id="file-input" class="form-control-file">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="profileModal" tabindex="-1" aria-labelledby="profileModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="profileModalLabel">Ваш Профиль</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="profile-avatar"
+                    src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'default-avatar.png' %}{% endif %}"
+                    alt="Avatar"
+                    class="img-thumbnail rounded-circle"
+                    style="width: 150px; height: 150px;">
+                <h4 class="mt-2">{{ user.username }}</h4>
+                <p id="profile-phone">{{ user.profile.phone|default:"Не указан" }}</p>
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary">Изменить</a>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+    .chat-history {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .message {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 10px;
+        max-width: 70%;
+    }
+
+    .message.my-message {
+        background-color: #dcf8c6;
+        margin-left: auto;
+        text-align: right;
+    }
+
+    .message.other-message {
+        background-color: #f1f0f0;
+        margin-right: auto;
+        text-align: left;
+    }
+
+    .message p {
+        margin: 0;
+    }
+
+    .message-data-time {
+        font-size: 0.6em;
+        color: gray;
+    }
+
+    .profile-picture {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+
+    .message img {
+        max-width: 100%;
+        border-radius: 10px;
+    }
+</style>
+
+<script>
+    function openChat(chatId, friendName, friendAvatar) {
+        document.getElementById('chat-name').textContent = friendName;
+        document.getElementById('chat-avatar').querySelector('img').src = friendAvatar;
+        document.getElementById('chat-name').dataset.chatId = chatId;
+
+        fetch(`/chats/${chatId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const chatHistory = document.getElementById('chat-history');
+                chatHistory.innerHTML = '';
+                data.messages.forEach(msg => {
+                    const messageElement = document.createElement('div');
+                    messageElement.className = msg.is_sender ? 'message my-message' : 'message other-message';
+
+                    let messageContent = '';
+                    if (msg.file) {
+                        const fileExtension = msg.file.split('.').pop().toLowerCase();
+                        if (['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension)) {
+                            messageContent += `<img src="${msg.file}" alt="Image">`;
+                        } else {
+                            messageContent += `<a href="${msg.file}" target="_blank">File</a>`;
+                        }
+                    }
+                    if (msg.content) {
+                        messageContent += `<p>${msg.content}</p>`;
+                    }
+
+                    messageElement.innerHTML = `
+                        ${messageContent}
+                        <span class="message-data-time">${msg.timestamp}</span>
+                    `;
+                    chatHistory.appendChild(messageElement);
+                });
+                chatHistory.scrollTop = chatHistory.scrollHeight; // Прокрутка вниз
+            });
+    }
+
+    function sendMessage() {
+        const messageInput = document.getElementById('message-input');
+        const fileInput = document.getElementById('file-input');
+        const message = messageInput.value;
+        const file = fileInput.files[0];
+        const chatId = document.getElementById('chat-name').dataset.chatId;
+
+        if (message || file) {
+            const formData = new FormData();
+            formData.append('content', message);
+            if (file) {
+                formData.append('file', file);
+            }
+
+            fetch(`/chats/${chatId}/send/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')  // Убедитесь, что CSRF токен передается
+                }
+            }).then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    messageInput.value = '';
+                    fileInput.value = '';
+                    openChat(chatId, document.getElementById('chat-name').textContent, document.getElementById('chat-avatar').querySelector('img').src);
+                } else {
+                    alert('Message sending failed.');
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    }
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+
+{% endblock %}
